@@ -57,7 +57,16 @@ class MenuButton {
     event.preventDefault();
     if (['ArrowUp', 'ArrowDown'].includes(key)) {
       this.toggle(true);
-      this.items[key === 'ArrowUp' ? this.items.length - 1 : 0].focus();
+      const targetItem = this.items[key === 'ArrowUp' ? this.items.length - 1 : 0];
+      if (this.menu.getAnimations().length) {
+        const handleTransitionEnd = () => {
+          targetItem.focus();
+          this.menu.removeEventListener('transitionend', handleTransitionEnd);
+        };
+        this.menu.addEventListener('transitionend', handleTransitionEnd);
+      } else {
+        targetItem.focus();
+      }
       return;
     }
     this.toggle(false);
