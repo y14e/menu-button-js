@@ -1,5 +1,21 @@
+type MenuButtonOptions = {
+  selector: {
+    trigger: string;
+    menu: string;
+    item: string;
+  };
+};
+
 class MenuButton {
-  constructor(root, options) {
+  root: HTMLElement;
+  defaults: MenuButtonOptions;
+  settings: MenuButtonOptions;
+  trigger: HTMLElement;
+  menu: HTMLElement;
+  items: NodeListOf<HTMLElement>;
+  itemsByInitial: Record<string, HTMLElement[]>;
+
+  constructor(root: HTMLElement, options?: Partial<MenuButtonOptions>) {
     this.root = root;
     this.defaults = {
       selector: {
@@ -12,27 +28,27 @@ class MenuButton {
       selector: { ...this.defaults.selector, ...options?.selector },
     };
     const NOT_NESTED = `:not(:scope ${this.settings.selector.item} *)`;
-    this.trigger = this.root.querySelector(`${this.settings.selector.trigger}${NOT_NESTED}`);
-    this.menu = this.root.querySelector(`${this.settings.selector.menu}${NOT_NESTED}`);
+    this.trigger = this.root.querySelector(`${this.settings.selector.trigger}${NOT_NESTED}`) as HTMLElement;
+    this.menu = this.root.querySelector(`${this.settings.selector.menu}${NOT_NESTED}`) as HTMLElement;
     this.items = this.root.querySelectorAll(`${this.settings.selector.item}${NOT_NESTED}`);
     this.itemsByInitial = {};
     this.initialize();
   }
 
-  initialize() {
+  private initialize(): void {
     this.root.addEventListener('focusout', event => this.handleFocusOut(event));
     const id = Math.random().toString(16).slice(2, 8).padEnd(6, '0');
     this.trigger.setAttribute('id', this.trigger.getAttribute('id') || `menu-button-trigger-${id}`);
     this.menu.setAttribute('id', this.menu.getAttribute('id') || `menu-button-menu-${id}`);
-    this.trigger.setAttribute('aria-controls', this.menu.getAttribute('id'));
+    this.trigger.setAttribute('aria-controls', this.menu.getAttribute('id')!);
     this.trigger.setAttribute('aria-expanded', 'false');
     this.trigger.setAttribute('aria-haspopup', 'true');
     this.trigger.addEventListener('click', event => this.handleClick(event));
     this.trigger.addEventListener('keydown', event => this.handleTriggerKeyDown(event));
-    this.menu.setAttribute('aria-labelledby', this.trigger.getAttribute('id'));
+    this.menu.setAttribute('aria-labelledby', this.trigger.getAttribute('id')!);
     this.menu.addEventListener('keydown', event => this.handleMenuKeyDown(event));
     this.items.forEach(item => {
-      const initial = item.textContent.trim().charAt(0).toLowerCase();
+      const initial = item.textContent!.trim().charAt(0).toLowerCase();
       if (/[a-z]/.test(initial)) {
         item.setAttribute('aria-keyshortcuts', initial);
         (this.itemsByInitial[initial] ||= []).push(item);
@@ -41,11 +57,11 @@ class MenuButton {
     });
   }
 
-  handleFocusOut(event) {
-    if (!this.root.contains(event.relatedTarget)) this.toggle(false);
+  private handleFocusOut(event: FocusEvent): void {
+    if (!this.root.contains(event.relatedTarget as HTMLElement)) this.toggle(false);
   }
 
-  handleClick(event) {
+  private handleClick(event: MouseEvent): void {
     event.preventDefault();
     this.toggle(this.trigger.getAttribute('aria-expanded') !== 'true');
     if (this.trigger.getAttribute('aria-expanded') === 'true') {
@@ -59,7 +75,7 @@ class MenuButton {
     }
   }
 
-  handleTriggerKeyDown(event) {
+  private handleTriggerKeyDown(event: KeyboardEvent): void {
     const { key } = event;
     if (!['ArrowUp', 'ArrowDown', 'Escape'].includes(key)) return;
     event.preventDefault();
@@ -77,13 +93,13 @@ class MenuButton {
     this.toggle(false);
   }
 
-  handleMenuKeyDown(event) {
+  private handleMenuKeyDown(event: KeyboardEvent): void {
     const { key } = event;
-    const isAlpha = value => /^[a-z]$/i.test(value);
-    const isFocusable = item => item.getAttribute('aria-disabled') !== 'true' && !item.hasAttribute('disabled');
+    const isAlpha = (value: string): boolean => /^[a-z]$/i.test(value);
+    const isFocusable = (item: HTMLElement): boolean => item.getAttribute('aria-disabled') !== 'true' && !item.hasAttribute('disabled');
     if (!([' ', 'Enter', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'Escape'].includes(key) || (event.shiftKey && key === 'Tab') || (isAlpha(key) && this.itemsByInitial[key.toLowerCase()]?.filter(item => isFocusable(item)).length))) return;
     event.preventDefault();
-    const active = document.activeElement;
+    const active = document.activeElement as HTMLElement;
     if ([' ', 'Enter'].includes(key)) {
       active.click();
       return;
@@ -121,7 +137,7 @@ class MenuButton {
     this.trigger.focus();
   }
 
-  toggle(isOpen) {
+  toggle(isOpen: boolean): void {
     this.trigger.setAttribute('aria-expanded', String(isOpen));
   }
 }
