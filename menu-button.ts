@@ -80,16 +80,12 @@ class MenuButton {
     if (isOpen) {
       this.animationPromise = this.animationPromise.then(async () => {
         const animations = this.menu.getAnimations();
-        const item = this.items[0];
         if (animations.length) {
           try {
             await Promise.all(animations.map(animation => animation.finished));
           } catch (error) {}
-          return item.focus();
-        } else {
-          item.focus();
-          return Promise.resolve();
         }
+        this.items[0].focus();
       });
     }
   }
@@ -102,16 +98,12 @@ class MenuButton {
       this.animationPromise = this.animationPromise.then(async () => {
         this.toggle(true);
         const animations = this.menu.getAnimations();
-        const item = this.items[key === 'ArrowUp' ? this.items.length - 1 : 0];
         if (animations.length) {
           try {
             await Promise.all(animations.map(animation => animation.finished));
           } catch (error) {}
-          return item.focus();
-        } else {
-          item.focus();
-          return Promise.resolve();
         }
+        this.items[key === 'ArrowUp' ? this.items.length - 1 : 0].focus();
       });
       return;
     }
