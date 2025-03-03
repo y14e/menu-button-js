@@ -16,7 +16,7 @@ class MenuButton {
     this.menu = this.root.querySelector(`${this.settings.selector.menu}${NOT_NESTED}`);
     this.items = this.root.querySelectorAll(`${this.settings.selector.item}${NOT_NESTED}`);
     this.itemsByInitial = {};
-    this.animationPromise = Promise.resolve();
+    this.animation = Promise.resolve();
     this.initialize();
   }
 
@@ -61,7 +61,7 @@ class MenuButton {
     const isOpen = this.trigger.getAttribute('aria-expanded') !== 'true';
     this.toggle(isOpen);
     if (isOpen) {
-      this.animationPromise = this.animationPromise.then(async () => {
+      this.animation = this.animation.then(async () => {
         const animations = this.menu.getAnimations();
         if (animations.length) {
           try {
@@ -78,7 +78,7 @@ class MenuButton {
     if (!['ArrowUp', 'ArrowDown', 'Escape'].includes(key)) return;
     event.preventDefault();
     if (['ArrowUp', 'ArrowDown'].includes(key)) {
-      this.animationPromise = this.animationPromise.then(async () => {
+      this.animation = this.animation.then(async () => {
         this.toggle(true);
         const animations = this.menu.getAnimations();
         if (animations.length) {
