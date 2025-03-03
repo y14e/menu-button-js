@@ -23,7 +23,7 @@ class MenuButton {
 
   initialize() {
     this.root.addEventListener('focusout', event => this.handleFocusOut(event));
-    const id = Math.random().toString(16).slice(2, 8).padEnd(6, '0');
+    const id = Math.random().toString(36).slice(-8);
     this.trigger.setAttribute('id', this.trigger.getAttribute('id') || `menu-button-trigger-${id}`);
     this.menu.setAttribute('id', this.menu.getAttribute('id') || `menu-button-menu-${id}`);
     this.trigger.setAttribute('aria-controls', this.menu.getAttribute('id'));
