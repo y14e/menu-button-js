@@ -15,6 +15,7 @@ class MenuButton {
     this.trigger = this.root.querySelector(`${this.settings.selector.trigger}${NOT_NESTED}`);
     this.menu = this.root.querySelector(`${this.settings.selector.menu}${NOT_NESTED}`);
     this.items = this.root.querySelectorAll(`${this.settings.selector.item}${NOT_NESTED}`);
+    if (!this.trigger || !this.menu || !this.items.length) return;
     this.itemsByInitial = {};
     this.animation = Promise.resolve();
     this.initialize();
