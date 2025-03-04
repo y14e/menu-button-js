@@ -22,6 +22,9 @@ class MenuButton {
   }
 
   initialize() {
+    document.addEventListener('click', event => {
+      if (!this.root.contains(event.target) && this.trigger.getAttribute('aria-expanded') === 'true') this.toggle(false);
+    });
     this.root.addEventListener('focusout', event => this.handleFocusOut(event));
     const id = Math.random().toString(36).slice(-8);
     this.trigger.setAttribute('id', this.trigger.getAttribute('id') || `menu-button-trigger-${id}`);
