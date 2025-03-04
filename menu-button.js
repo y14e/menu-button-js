@@ -17,13 +17,12 @@ class MenuButton {
     this.items = this.root.querySelectorAll(`${this.settings.selector.item}${NOT_NESTED}`);
     if (!this.trigger || !this.menu || !this.items.length) return;
     this.itemsByInitial = {};
-    this.animation = Promise.resolve();
     this.initialize();
   }
 
   initialize() {
-    document.addEventListener('click', event => {
-      if (!this.root.contains(event.target) && this.trigger.getAttribute('aria-expanded') === 'true') this.toggle(false);
+    document.addEventListener('mousedown', event => {
+      if (!this.root.contains(event.target) && this.trigger.getAttribute('aria-expanded') === 'true') this.close();
     });
     this.root.addEventListener('focusout', event => this.handleFocusOut(event));
     const id = Math.random().toString(36).slice(-8);
@@ -46,35 +45,25 @@ class MenuButton {
     });
   }
 
+  toggle(isOpen) {
+    if ((this.trigger.getAttribute('aria-expanded') === 'true') === isOpen) return;
+    this.trigger.setAttribute('aria-expanded', String(isOpen));
+  }
+
   handleFocusOut(event) {
+    if (this.trigger.getAttribute('aria-expanded') !== 'true') return;
     const target = event.relatedTarget;
     if (target && !this.root.contains(target)) {
-      this.toggle(false);
+      this.close();
       return;
     }
-
-    // Fix for WebKit
-    window.setTimeout(() => {
-      const active = document.activeElement;
-      if (active && !this.root.contains(active)) this.toggle(false);
-    }, 100);
   }
 
   handleClick(event) {
     event.preventDefault();
-    const isOpen = this.trigger.getAttribute('aria-expanded') !== 'true';
-    this.toggle(isOpen);
-    if (isOpen) {
-      this.animation = this.animation.then(async () => {
-        const animations = this.menu.getAnimations();
-        if (animations.length) {
-          try {
-            await Promise.all(animations.map(animation => animation.finished));
-          } catch (error) {}
-        }
-        this.items[0].focus();
-      });
-    }
+    const isOpen = this.trigger.getAttribute('aria-expanded') === 'true';
+    this.toggle(!isOpen);
+    if (!isOpen) window.requestAnimationFrame(() => window.requestAnimationFrame(() => this.items[0].focus()));
   }
 
   handleTriggerKeyDown(event) {
@@ -82,34 +71,26 @@ class MenuButton {
     if (!['ArrowUp', 'ArrowDown', 'Escape'].includes(key)) return;
     event.preventDefault();
     if (['ArrowUp', 'ArrowDown'].includes(key)) {
-      this.animation = this.animation.then(async () => {
-        this.toggle(true);
-        const animations = this.menu.getAnimations();
-        if (animations.length) {
-          try {
-            await Promise.all(animations.map(animation => animation.finished));
-          } catch (error) {}
-        }
-        this.items[key === 'ArrowUp' ? this.items.length - 1 : 0].focus();
-      });
+      this.open();
+      window.requestAnimationFrame(() => window.requestAnimationFrame(() => this.items[key === 'ArrowUp' ? this.items.length - 1 : 0].focus()));
       return;
     }
-    this.toggle(false);
+    this.close();
   }
 
   handleMenuKeyDown(event) {
-    const { key } = event;
+    const { key, shiftKey } = event;
     const isAlpha = value => /^[a-z]$/i.test(value);
     const isFocusable = element => element.getAttribute('aria-disabled') !== 'true' && !element.hasAttribute('disabled');
-    if (!([' ', 'Enter', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'Escape'].includes(key) || (event.shiftKey && key === 'Tab') || (isAlpha(key) && this.itemsByInitial[key.toLowerCase()]?.filter(isFocusable).length))) return;
+    if (!([' ', 'Enter', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'Escape'].includes(key) || (shiftKey && key === 'Tab') || (isAlpha(key) && this.itemsByInitial[key.toLowerCase()]?.filter(isFocusable).length))) return;
     event.preventDefault();
     const active = document.activeElement;
     if ([' ', 'Enter'].includes(key)) {
       active.click();
       return;
     }
+    const focusables = [...this.items].filter(isFocusable);
     if (['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(key)) {
-      const focusables = [...this.items].filter(isFocusable);
       const currentIndex = focusables.indexOf(active);
       const length = focusables.length;
       let newIndex = currentIndex;
@@ -132,17 +113,20 @@ class MenuButton {
     }
     if (isAlpha(key)) {
       const focusablesByInitial = this.itemsByInitial[key.toLowerCase()].filter(isFocusable);
-      const focusables = [...this.items].filter(isFocusable);
       const index = focusablesByInitial.findIndex(item => focusables.indexOf(item) > focusables.indexOf(active));
       focusablesByInitial[index !== -1 ? index : 0].focus();
       return;
     }
-    this.toggle(false);
-    this.trigger.focus();
+    this.close();
   }
 
-  toggle(isOpen) {
-    this.trigger.setAttribute('aria-expanded', String(isOpen));
+  open() {
+    this.toggle(true);
+  }
+
+  close() {
+    this.toggle(false);
+    if (this.root.contains(document.activeElement)) this.trigger.focus();
   }
 }
 
