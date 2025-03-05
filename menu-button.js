@@ -26,8 +26,8 @@ class MenuButton {
     });
     this.root.addEventListener('focusout', event => this.handleFocusOut(event));
     const id = Math.random().toString(36).slice(-8);
-    this.trigger.setAttribute('id', this.trigger.getAttribute('id') || `menu-trigger-${id}`);
-    this.menu.setAttribute('id', this.menu.getAttribute('id') || `menu-list-${id}`);
+    this.trigger.setAttribute('id', this.trigger.getAttribute('id') || `menu-button-trigger-${id}`);
+    this.menu.setAttribute('id', this.menu.getAttribute('id') || `menu-button-menu-${id}`);
     this.trigger.setAttribute('aria-controls', this.menu.getAttribute('id'));
     this.trigger.setAttribute('aria-expanded', 'false');
     this.trigger.setAttribute('aria-haspopup', 'true');
