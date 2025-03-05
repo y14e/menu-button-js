@@ -132,13 +132,13 @@ class MenuButton {
       focusables[newIndex].focus();
       return;
     }
-    if (isAlpha(key)) {
-      const focusablesByInitial = this.itemsByInitial[key.toLowerCase()].filter(this.isFocusable);
-      const index = focusablesByInitial.findIndex(item => focusables.indexOf(item) > focusables.indexOf(active));
-      focusablesByInitial[index !== -1 ? index : 0].focus();
+    if (['Tab', 'Escape'].includes(key)) {
+      this.close();
       return;
     }
-    this.close();
+    const focusablesByInitial = this.itemsByInitial[key.toLowerCase()].filter(this.isFocusable);
+    const index = focusablesByInitial.findIndex(item => focusables.indexOf(item) > focusables.indexOf(active));
+    focusablesByInitial[index !== -1 ? index : 0].focus();
   }
 
   open(): void {
