@@ -1,10 +1,26 @@
-class Menu {
-  constructor(root, options) {
+type MenuButtonOptions = {
+  selector: {
+    trigger: string;
+    menu: string;
+    item: string;
+  };
+};
+
+class MenuButton {
+  root: HTMLElement;
+  defaults: MenuButtonOptions;
+  settings: MenuButtonOptions;
+  trigger: HTMLElement;
+  menu: HTMLElement;
+  items: NodeListOf<HTMLElement>;
+  itemsByInitial: Record<string, HTMLElement[]> = {};
+
+  constructor(root: HTMLElement, options?: Partial<MenuButtonOptions>) {
     this.root = root;
     this.defaults = {
       selector: {
-        trigger: '[data-menu-trigger]',
-        list: '[role="menu"]',
+        trigger: '[data-menu-button-trigger]',
+        menu: '[role="menu"]',
         item: '[role="menuitem"]',
       },
     };
@@ -12,32 +28,32 @@ class Menu {
       selector: { ...this.defaults.selector, ...options?.selector },
     };
     const NOT_NESTED = `:not(:scope ${this.settings.selector.item} *)`;
-    this.trigger = this.root.querySelector(`${this.settings.selector.trigger}${NOT_NESTED}`);
-    this.list = this.root.querySelector(`${this.settings.selector.list}${NOT_NESTED}`);
+    this.trigger = this.root.querySelector(`${this.settings.selector.trigger}${NOT_NESTED}`) as HTMLElement;
+    this.menu = this.root.querySelector(`${this.settings.selector.menu}${NOT_NESTED}`) as HTMLElement;
     this.items = this.root.querySelectorAll(`${this.settings.selector.item}${NOT_NESTED}`);
-    if (!this.trigger || !this.list || !this.items.length) return;
+    if (!this.trigger || !this.menu || !this.items.length) return;
     this.itemsByInitial = {};
     this.initialize();
   }
 
-  initialize() {
+  private initialize(): void {
     document.addEventListener('mousedown', event => {
-      if (!this.root.contains(event.target) && this.trigger.getAttribute('aria-expanded') === 'true') this.close();
+      if (!this.root.contains(event.target as HTMLElement) && this.trigger.getAttribute('aria-expanded') === 'true') this.close();
     });
     this.root.addEventListener('focusout', event => this.handleFocusOut(event));
     const id = Math.random().toString(36).slice(-8);
     this.trigger.setAttribute('id', this.trigger.getAttribute('id') || `menu-trigger-${id}`);
-    this.list.setAttribute('id', this.list.getAttribute('id') || `menu-list-${id}`);
-    this.trigger.setAttribute('aria-controls', this.list.getAttribute('id'));
+    this.menu.setAttribute('id', this.menu.getAttribute('id') || `menu-list-${id}`);
+    this.trigger.setAttribute('aria-controls', this.menu.getAttribute('id')!);
     this.trigger.setAttribute('aria-expanded', 'false');
     this.trigger.setAttribute('aria-haspopup', 'true');
     this.trigger.setAttribute('tabindex', '0');
     this.trigger.addEventListener('click', event => this.handleClick(event));
     this.trigger.addEventListener('keydown', event => this.handleTriggerKeyDown(event));
-    this.list.setAttribute('aria-labelledby', this.trigger.getAttribute('id'));
-    this.list.addEventListener('keydown', event => this.handleListKeyDown(event));
+    this.menu.setAttribute('aria-labelledby', this.trigger.getAttribute('id')!);
+    this.menu.addEventListener('keydown', event => this.handleMenuKeyDown(event));
     this.items.forEach(item => {
-      const initial = item.textContent.trim().charAt(0).toLowerCase();
+      const initial = item.textContent!.trim().charAt(0).toLowerCase();
       if (/[a-z]/.test(initial)) {
         item.setAttribute('aria-keyshortcuts', initial);
         (this.itemsByInitial[initial] ||= []).push(item);
@@ -46,25 +62,25 @@ class Menu {
     });
   }
 
-  toggle(isOpen) {
+  private toggle(isOpen: boolean): void {
     if ((this.trigger.getAttribute('aria-expanded') === 'true') === isOpen) return;
     this.trigger.setAttribute('aria-expanded', String(isOpen));
   }
 
-  isFocusable(element) {
+  private isFocusable(element: HTMLElement): boolean {
     return element.getAttribute('aria-disabled') !== 'true' && !element.hasAttribute('disabled');
   }
 
-  handleFocusOut(event) {
+  private handleFocusOut(event: FocusEvent): void {
     if (this.trigger.getAttribute('aria-expanded') !== 'true') return;
-    const target = event.relatedTarget;
+    const target = event.relatedTarget as HTMLElement;
     if (target && !this.root.contains(target)) {
       this.close();
       return;
     }
   }
 
-  handleClick(event) {
+  private handleClick(event: MouseEvent): void {
     event.preventDefault();
     const isOpen = this.trigger.getAttribute('aria-expanded') === 'true';
     this.toggle(!isOpen);
@@ -73,7 +89,7 @@ class Menu {
     if (!isOpen) window.requestAnimationFrame(() => window.requestAnimationFrame(() => focusables[0].focus()));
   }
 
-  handleTriggerKeyDown(event) {
+  private handleTriggerKeyDown(event: KeyboardEvent): void {
     const { key } = event;
     if (![' ', 'Enter', 'ArrowUp', 'ArrowDown', 'Escape'].includes(key)) return;
     event.preventDefault();
@@ -87,12 +103,12 @@ class Menu {
     this.close();
   }
 
-  handleListKeyDown(event) {
+  private handleMenuKeyDown(event: KeyboardEvent): void {
     const { key, shiftKey } = event;
-    const isAlpha = value => /^[a-z]$/i.test(value);
+    const isAlpha = (value: string): boolean => /^[a-z]$/i.test(value);
     if (!([' ', 'Enter', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'Escape'].includes(key) || (shiftKey && key === 'Tab') || (isAlpha(key) && this.itemsByInitial[key.toLowerCase()]?.filter(this.isFocusable).length))) return;
     event.preventDefault();
-    const active = document.activeElement;
+    const active = document.activeElement as HTMLElement;
     if ([' ', 'Enter'].includes(key)) {
       active.click();
       return;
@@ -128,14 +144,14 @@ class Menu {
     this.close();
   }
 
-  open() {
+  open(): void {
     this.toggle(true);
   }
 
-  close() {
+  close(): void {
     this.toggle(false);
     if (this.root.contains(document.activeElement)) this.trigger.focus();
   }
 }
 
-export default Menu;
+export default MenuButton;

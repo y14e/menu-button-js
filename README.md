@@ -1,10 +1,10 @@
-# menu-button-js
-WAI-ARIA compliant menu button pattern implementation in JS.
+# menu-js
+WAI-ARIA compliant menu (button) pattern implementation in JS.
 ## Installation
 ```js
-import Menu from './menu-button.js';
+import Menu from './menu.js';
 
-const myMenuButton = new MenuButton(...);
+const myMenu = new Menu(...);
 ```
 ## Demo
-https://y14e.github.io/menu-button-js/
+https://y14e.github.io/menu-js/
