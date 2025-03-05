@@ -57,8 +57,8 @@ class MenuButton {
 
   handleFocusOut(event) {
     if (this.trigger.getAttribute('aria-expanded') !== 'true') return;
-    const target = event.relatedTarget;
-    if (target && !this.root.contains(target)) this.close();
+    const focused = event.relatedTarget;
+    if (focused && !this.root.contains(focused)) this.close();
   }
 
   handleClick(event) {
