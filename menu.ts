@@ -43,8 +43,8 @@ class Menu {
       });
       this.root.addEventListener('focusout', event => this.handleFocusOut(event));
       const id = Math.random().toString(36).slice(-8);
-      this.button.setAttribute('id', this.button.getAttribute('id') || `menu-button-button-${id}`);
-      this.list.setAttribute('id', this.list.getAttribute('id') || `menu-button-menu-${id}`);
+      this.button.setAttribute('id', this.button.getAttribute('id') || `menu-button-${id}`);
+      this.list.setAttribute('id', this.list.getAttribute('id') || `menu-list-${id}`);
       this.button.setAttribute('aria-controls', this.list.getAttribute('id')!);
       this.button.setAttribute('aria-expanded', 'false');
       this.button.setAttribute('aria-haspopup', 'true');
