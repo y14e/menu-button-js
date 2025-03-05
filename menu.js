@@ -51,6 +51,10 @@ class Menu {
     this.trigger.setAttribute('aria-expanded', String(isOpen));
   }
 
+  isFocusable(element) {
+    return element.getAttribute('aria-disabled') !== 'true' && !element.hasAttribute('disabled');
+  }
+
   handleFocusOut(event) {
     if (this.trigger.getAttribute('aria-expanded') !== 'true') return;
     const target = event.relatedTarget;
@@ -64,7 +68,9 @@ class Menu {
     event.preventDefault();
     const isOpen = this.trigger.getAttribute('aria-expanded') === 'true';
     this.toggle(!isOpen);
-    if (!isOpen) window.requestAnimationFrame(() => window.requestAnimationFrame(() => this.items[0].focus()));
+    const focusables = [...this.items].filter(this.isFocusable);
+    if (!focusables.length) return;
+    if (!isOpen) window.requestAnimationFrame(() => window.requestAnimationFrame(() => focusables[0].focus()));
   }
 
   handleTriggerKeyDown(event) {
@@ -73,7 +79,9 @@ class Menu {
     event.preventDefault();
     if (!['Escape'].includes(key)) {
       this.open();
-      window.requestAnimationFrame(() => window.requestAnimationFrame(() => this.items[key !== 'ArrowUp' ? 0 : this.items.length - 1].focus()));
+      const focusables = [...this.items].filter(this.isFocusable);
+      if (!focusables.length) return;
+      window.requestAnimationFrame(() => window.requestAnimationFrame(() => focusables[key !== 'ArrowUp' ? 0 : focusables.length - 1].focus()));
       return;
     }
     this.close();
@@ -82,15 +90,14 @@ class Menu {
   handleListKeyDown(event) {
     const { key, shiftKey } = event;
     const isAlpha = value => /^[a-z]$/i.test(value);
-    const isFocusable = element => element.getAttribute('aria-disabled') !== 'true' && !element.hasAttribute('disabled');
-    if (!([' ', 'Enter', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'Escape'].includes(key) || (shiftKey && key === 'Tab') || (isAlpha(key) && this.itemsByInitial[key.toLowerCase()]?.filter(isFocusable).length))) return;
+    if (!([' ', 'Enter', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'Escape'].includes(key) || (shiftKey && key === 'Tab') || (isAlpha(key) && this.itemsByInitial[key.toLowerCase()]?.filter(this.isFocusable).length))) return;
     event.preventDefault();
     const active = document.activeElement;
     if ([' ', 'Enter'].includes(key)) {
       active.click();
       return;
     }
-    const focusables = [...this.items].filter(isFocusable);
+    const focusables = [...this.items].filter(this.isFocusable);
     if (['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(key)) {
       const currentIndex = focusables.indexOf(active);
       const length = focusables.length;
@@ -113,7 +120,7 @@ class Menu {
       return;
     }
     if (isAlpha(key)) {
-      const focusablesByInitial = this.itemsByInitial[key.toLowerCase()].filter(isFocusable);
+      const focusablesByInitial = this.itemsByInitial[key.toLowerCase()].filter(this.isFocusable);
       const index = focusablesByInitial.findIndex(item => focusables.indexOf(item) > focusables.indexOf(active));
       focusablesByInitial[index !== -1 ? index : 0].focus();
       return;
