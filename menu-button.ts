@@ -38,7 +38,7 @@ class MenuButton {
 
   private initialize(): void {
     document.addEventListener('mousedown', event => {
-      if (!this.root.contains(event.target as HTMLElement) && this.trigger.getAttribute('aria-expanded') === 'true') this.close();
+      if (!this.root.contains(event.target as HTMLElement)) this.close();
     });
     this.root.addEventListener('focusout', event => this.handleFocusOut(event));
     const id = Math.random().toString(36).slice(-8);
@@ -74,10 +74,7 @@ class MenuButton {
   private handleFocusOut(event: FocusEvent): void {
     if (this.trigger.getAttribute('aria-expanded') !== 'true') return;
     const target = event.relatedTarget as HTMLElement;
-    if (target && !this.root.contains(target)) {
-      this.close();
-      return;
-    }
+    if (target && !this.root.contains(target)) this.close();
   }
 
   private handleClick(event: MouseEvent): void {
