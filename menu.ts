@@ -51,7 +51,7 @@ class Menu {
       this.button.setAttribute('aria-expanded', 'false');
       this.button.setAttribute('aria-haspopup', 'true');
       this.button.setAttribute('tabindex', '0');
-      this.button.addEventListener('mouseover', () => this.handleMouseOver());
+      this.button.addEventListener('mouseover', event => this.handleMouseOver(event));
       this.button.addEventListener('click', event => this.handleClick(event));
       this.button.addEventListener('keydown', event => this.handleButtonKeyDown(event));
       this.list.setAttribute('aria-labelledby', this.button.getAttribute('id')!);
@@ -92,7 +92,8 @@ class Menu {
     if (focused && !this.root.contains(focused)) this.close();
   }
 
-  handleMouseOver() {
+  handleMouseOver(event: MouseEvent): void {
+    if ((event as PointerEvent).pointerType !== 'mouse') return;
     if (Menu.hasOpen) {
       this.button.focus();
       this.open();
