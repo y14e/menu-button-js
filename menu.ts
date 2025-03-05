@@ -13,7 +13,7 @@ class Menu {
   button: HTMLElement;
   list: HTMLElement;
   items: NodeListOf<HTMLElement>;
-  itemsByInitial: Record<string, HTMLElement[]> = {};
+  itemsByInitial!: Record<string, HTMLElement[]>;
 
   constructor(root: HTMLElement, options?: Partial<MenuOptions>) {
     this.root = root;
@@ -57,7 +57,7 @@ class Menu {
         if (!this.root.contains(event.relatedTarget as HTMLElement)) this.resetTabIndex();
       });
     }
-    this.list.addEventListener('keydown', event => this.handleMenuKeyDown(event));
+    this.list.addEventListener('keydown', event => this.handleListKeyDown(event));
     this.items.forEach(item => {
       const initial = item.textContent!.trim().charAt(0).toLowerCase();
       if (/[a-z]/.test(initial)) {
@@ -111,7 +111,7 @@ class Menu {
     this.close();
   }
 
-  private handleMenuKeyDown(event: KeyboardEvent): void {
+  private handleListKeyDown(event: KeyboardEvent): void {
     const { key, shiftKey } = event;
     if (!this.button && shiftKey && key === 'Tab') return;
     const isAlpha = (value: string): boolean => /^[a-z]$/i.test(value);
