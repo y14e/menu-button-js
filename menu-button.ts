@@ -58,7 +58,7 @@ class MenuButton {
         item.setAttribute('aria-keyshortcuts', initial);
         (this.itemsByInitial[initial] ||= []).push(item);
       }
-      item.setAttribute('tabindex', '-1');
+      item.setAttribute('tabindex', this.isFocusable(item) && [...this.items].filter(this.isFocusable).findIndex(item => item.getAttribute('tabindex') === '0') === -1 ? '0' : '-1');
     });
   }
 
