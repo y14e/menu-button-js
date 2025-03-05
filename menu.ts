@@ -15,6 +15,8 @@ class Menu {
   items: NodeListOf<HTMLElement>;
   itemsByInitial!: Record<string, HTMLElement[]>;
 
+  static hasOpen = false;
+
   constructor(root: HTMLElement, options?: Partial<MenuOptions>) {
     this.root = root;
     this.defaults = {
@@ -49,6 +51,7 @@ class Menu {
       this.button.setAttribute('aria-expanded', 'false');
       this.button.setAttribute('aria-haspopup', 'true');
       this.button.setAttribute('tabindex', '0');
+      this.button.addEventListener('mouseover', () => this.handleMouseOver());
       this.button.addEventListener('click', event => this.handleClick(event));
       this.button.addEventListener('keydown', event => this.handleButtonKeyDown(event));
       this.list.setAttribute('aria-labelledby', this.button.getAttribute('id')!);
@@ -70,6 +73,7 @@ class Menu {
 
   private toggle(isOpen: boolean): void {
     if (!this.button || (this.button.getAttribute('aria-expanded') === 'true') === isOpen) return;
+    Menu.hasOpen = isOpen;
     this.button.setAttribute('aria-expanded', String(isOpen));
   }
 
@@ -86,6 +90,13 @@ class Menu {
     if (!this.button || this.button.getAttribute('aria-expanded') !== 'true') return;
     const focused = event.relatedTarget as HTMLElement;
     if (focused && !this.root.contains(focused)) this.close();
+  }
+
+  handleMouseOver() {
+    if (Menu.hasOpen) {
+      this.button.focus();
+      this.open();
+    }
   }
 
   private handleClick(event: MouseEvent): void {
