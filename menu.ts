@@ -47,6 +47,7 @@ class Menu {
     this.trigger.setAttribute('aria-controls', this.list.getAttribute('id')!);
     this.trigger.setAttribute('aria-expanded', 'false');
     this.trigger.setAttribute('aria-haspopup', 'true');
+    this.trigger.setAttribute('tabindex', '0');
     this.trigger.addEventListener('click', event => this.handleClick(event));
     this.trigger.addEventListener('keydown', event => this.handleTriggerKeyDown(event));
     this.list.setAttribute('aria-labelledby', this.trigger.getAttribute('id')!);
@@ -84,11 +85,11 @@ class Menu {
 
   private handleTriggerKeyDown(event: KeyboardEvent): void {
     const { key } = event;
-    if (!['ArrowUp', 'ArrowDown', 'Escape'].includes(key)) return;
+    if (![' ', 'Enter', 'ArrowUp', 'ArrowDown', 'Escape'].includes(key)) return;
     event.preventDefault();
-    if (['ArrowUp', 'ArrowDown'].includes(key)) {
+    if (!['Escape'].includes(key)) {
       this.open();
-      window.requestAnimationFrame(() => window.requestAnimationFrame(() => this.items[key === 'ArrowUp' ? this.items.length - 1 : 0].focus()));
+      window.requestAnimationFrame(() => window.requestAnimationFrame(() => this.items[key !== 'ArrowUp' ? 0 : this.items.length - 1].focus()));
       return;
     }
     this.close();
