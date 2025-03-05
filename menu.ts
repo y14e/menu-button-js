@@ -13,7 +13,7 @@ class Menu {
   trigger: HTMLElement;
   list: HTMLElement;
   items: NodeListOf<HTMLElement>;
-  itemsByInitial!: Record<string, HTMLElement[]>;
+  itemsByInitial: Record<string, HTMLElement[]> = {};
 
   constructor(root: HTMLElement, options?: Partial<MenuOptions>) {
     this.root = root;
