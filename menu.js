@@ -1,8 +1,9 @@
 class Menu {
-  static hasOpen = false;
+  static hasOpen = {};
 
   constructor(root, options) {
     this.root = root;
+    if (this.root.hasAttribute('data-menu-name')) this.name = this.root.getAttribute('data-menu-name') || '';
     this.defaults = {
       selector: {
         button: '[data-menu-button]',
@@ -19,6 +20,7 @@ class Menu {
     this.items = this.root.querySelectorAll(`${this.settings.selector.item}${NOT_NESTED}`);
     if (!this.list || !this.items.length) return;
     this.itemsByInitial = {};
+    if (this.name) Menu.hasOpen[this.name] ||= false;
     this.initialize();
   }
 
@@ -35,7 +37,7 @@ class Menu {
       this.button.setAttribute('aria-expanded', 'false');
       this.button.setAttribute('aria-haspopup', 'true');
       this.button.setAttribute('tabindex', '0');
-      this.button.addEventListener('mouseover', event => this.handleMouseOver(event));
+      this.button.addEventListener('pointerover', event => this.handlePointerOver(event));
       this.button.addEventListener('click', event => this.handleClick(event));
       this.button.addEventListener('keydown', event => this.handleButtonKeyDown(event));
       this.list.setAttribute('aria-labelledby', this.button.getAttribute('id'));
@@ -57,7 +59,7 @@ class Menu {
 
   toggle(isOpen) {
     if (!this.button || (this.button.getAttribute('aria-expanded') === 'true') === isOpen) return;
-    Menu.hasOpen = isOpen;
+    if (this.name) Menu.hasOpen[this.name] = isOpen;
     this.button.setAttribute('aria-expanded', String(isOpen));
   }
 
@@ -76,9 +78,9 @@ class Menu {
     if (focused && !this.root.contains(focused)) this.close();
   }
 
-  handleMouseOver(event) {
+  handlePointerOver(event) {
     if (event.pointerType !== 'mouse') return;
-    if (Menu.hasOpen) {
+    if (this.name && Menu.hasOpen[this.name]) {
       this.button.focus();
       this.open();
     }
