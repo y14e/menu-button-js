@@ -42,11 +42,11 @@ class Menu {
   }
 
   private initialize(): void {
+    document.addEventListener('mousedown', event => {
+      if (!this.root.contains(event.target as HTMLElement)) this.handleOutsideMouseDown();
+    });
+    this.root.addEventListener('focusout', event => this.handleRootFocusOut(event));
     if (this.button) {
-      document.addEventListener('mousedown', event => {
-        if (!this.root.contains(event.target as HTMLElement)) this.close();
-      });
-      this.root.addEventListener('focusout', event => this.handleFocusOut(event));
       const id = Math.random().toString(36).slice(-8);
       this.button.setAttribute('id', this.button.getAttribute('id') || `menu-button-${id}`);
       this.list.setAttribute('id', this.list.getAttribute('id') || `menu-list-${id}`);
@@ -54,14 +54,10 @@ class Menu {
       this.button.setAttribute('aria-expanded', 'false');
       this.button.setAttribute('aria-haspopup', 'true');
       this.button.setAttribute('tabindex', '0');
-      this.button.addEventListener('pointerover', event => this.handlePointerOver(event));
-      this.button.addEventListener('click', event => this.handleClick(event));
+      this.button.addEventListener('pointerover', event => this.handleButtonPointerOver(event));
+      this.button.addEventListener('click', event => this.handleButtonClick(event));
       this.button.addEventListener('keydown', event => this.handleButtonKeyDown(event));
       this.list.setAttribute('aria-labelledby', this.button.getAttribute('id')!);
-    } else {
-      this.root.addEventListener('focusout', event => {
-        if (!this.root.contains(event.relatedTarget as HTMLElement)) this.resetTabIndex();
-      });
     }
     this.list.addEventListener('keydown', event => this.handleListKeyDown(event));
     this.items.forEach(item => {
@@ -82,20 +78,30 @@ class Menu {
 
   private resetTabIndex(): void {
     this.items.forEach(item => item.removeAttribute('tabindex'));
-    this.items.forEach(item => item.setAttribute('tabindex', this.isFocusable(item) && [...this.items].filter(this.isFocusable).findIndex(item => item.getAttribute('tabindex') === '0') === -1 ? '0' : '-1'));
+    this.items.forEach(item => item.setAttribute('tabindex', this.isNonDisabled(item) && [...this.items].filter(this.isNonDisabled).findIndex(item => item.getAttribute('tabindex') === '0') === -1 ? '0' : '-1'));
   }
 
-  private isFocusable(element: HTMLElement): boolean {
+  private isNonDisabled(element: HTMLElement): boolean {
     return element.getAttribute('aria-disabled') !== 'true' && !element.hasAttribute('disabled');
   }
 
-  private handleFocusOut(event: FocusEvent): void {
-    if (!this.button || this.button.getAttribute('aria-expanded') !== 'true') return;
-    const focused = event.relatedTarget as HTMLElement;
-    if (focused && !this.root.contains(focused)) this.close();
+  private handleOutsideMouseDown(): void {
+    if (!this.button) return;
+    this.close();
   }
 
-  private handlePointerOver(event: PointerEvent): void {
+  private handleRootFocusOut(event: FocusEvent): void {
+    if (this.button && this.button.getAttribute('aria-expanded') !== 'true') return;
+    if (!this.root.contains(event.relatedTarget as HTMLElement)) {
+      if (this.button) {
+        this.close();
+      } else {
+        this.resetTabIndex();
+      }
+    }
+  }
+
+  private handleButtonPointerOver(event: PointerEvent): void {
     if (event.pointerType !== 'mouse') return;
     if (this.name && Menu.hasOpen[this.name]) {
       this.button.focus();
@@ -103,13 +109,13 @@ class Menu {
     }
   }
 
-  private handleClick(event: MouseEvent): void {
+  private handleButtonClick(event: MouseEvent): void {
     event.preventDefault();
     const isOpen = this.button.getAttribute('aria-expanded') === 'true';
     this.toggle(!isOpen);
-    const focusables = [...this.items].filter(this.isFocusable);
-    if (!focusables.length) return;
-    if (!isOpen) window.requestAnimationFrame(() => window.requestAnimationFrame(() => focusables[0].focus()));
+    const nonDisabledItems = [...this.items].filter(this.isNonDisabled);
+    if (!nonDisabledItems.length) return;
+    if (!isOpen) window.requestAnimationFrame(() => window.requestAnimationFrame(() => nonDisabledItems[0].focus()));
   }
 
   private handleButtonKeyDown(event: KeyboardEvent): void {
@@ -118,9 +124,9 @@ class Menu {
     event.preventDefault();
     if (!['Escape'].includes(key)) {
       this.open();
-      const focusables = [...this.items].filter(this.isFocusable);
-      if (!focusables.length) return;
-      window.requestAnimationFrame(() => window.requestAnimationFrame(() => focusables[key !== 'ArrowUp' ? 0 : focusables.length - 1].focus()));
+      const nonDisabledItems = [...this.items].filter(this.isNonDisabled);
+      if (!nonDisabledItems.length) return;
+      window.requestAnimationFrame(() => window.requestAnimationFrame(() => nonDisabledItems[key !== 'ArrowUp' ? 0 : nonDisabledItems.length - 1].focus()));
       return;
     }
     this.close();
@@ -130,17 +136,17 @@ class Menu {
     const { key, shiftKey } = event;
     if (!this.button && shiftKey && key === 'Tab') return;
     const isAlpha = (value: string): boolean => /^[a-z]$/i.test(value);
-    if (!([' ', 'Enter', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'Escape'].includes(key) || (shiftKey && key === 'Tab') || (isAlpha(key) && this.itemsByInitial[key.toLowerCase()]?.filter(this.isFocusable).length))) return;
+    if (!([' ', 'Enter', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'Escape'].includes(key) || (shiftKey && key === 'Tab') || (isAlpha(key) && this.itemsByInitial[key.toLowerCase()]?.filter(this.isNonDisabled).length))) return;
     event.preventDefault();
     const active = document.activeElement as HTMLElement;
     if ([' ', 'Enter'].includes(key)) {
       active.click();
       return;
     }
-    const focusables = [...this.items].filter(this.isFocusable);
+    const nonDisabledItems = [...this.items].filter(this.isNonDisabled);
     if (['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(key)) {
-      const currentIndex = focusables.indexOf(active);
-      const length = focusables.length;
+      const currentIndex = nonDisabledItems.indexOf(active);
+      const length = nonDisabledItems.length;
       let newIndex = currentIndex;
       switch (key) {
         case 'ArrowUp':
@@ -157,19 +163,19 @@ class Menu {
           break;
       }
       if (!this.button) {
-        focusables[currentIndex].setAttribute('tabindex', '-1');
-        focusables[newIndex].setAttribute('tabindex', '0');
+        nonDisabledItems[currentIndex].setAttribute('tabindex', '-1');
+        nonDisabledItems[newIndex].setAttribute('tabindex', '0');
       }
-      focusables[newIndex].focus();
+      nonDisabledItems[newIndex].focus();
       return;
     }
     if (['Tab', 'Escape'].includes(key)) {
       this.close();
       return;
     }
-    const focusablesByInitial = this.itemsByInitial[key.toLowerCase()].filter(this.isFocusable);
-    const index = focusablesByInitial.findIndex(item => focusables.indexOf(item) > focusables.indexOf(active));
-    focusablesByInitial[index !== -1 ? index : 0].focus();
+    const nonDisabledItemsByInitial = this.itemsByInitial[key.toLowerCase()].filter(this.isNonDisabled);
+    const index = nonDisabledItemsByInitial.findIndex(item => nonDisabledItems.indexOf(item) > nonDisabledItems.indexOf(active));
+    nonDisabledItemsByInitial[index !== -1 ? index : 0].focus();
   }
 
   open(): void {
