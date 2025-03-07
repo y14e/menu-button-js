@@ -51,6 +51,7 @@ class Menu {
       }
     });
     this.resetTabIndex();
+    this.root.setAttribute('data-menu-initialized', '');
   }
 
   toggle(isOpen) {
