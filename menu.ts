@@ -31,7 +31,7 @@ class Menu {
     this.settings = {
       selector: { ...this.defaults.selector, ...options?.selector },
     };
-    const NOT_NESTED = `:not(:scope ${this.settings.selector.item} *)`;
+    let NOT_NESTED = `:not(:scope ${this.settings.selector.item} *)`;
     this.buttonElement = this.rootElement.querySelector(`${this.settings.selector.button}${NOT_NESTED}`) as HTMLElement;
     this.listElement = this.rootElement.querySelector(`${this.settings.selector.list}${NOT_NESTED}`) as HTMLElement;
     this.itemElements = this.rootElement.querySelectorAll(`${this.settings.selector.item}${NOT_NESTED}`);
@@ -47,7 +47,7 @@ class Menu {
     });
     this.rootElement.addEventListener('focusout', event => this.handleRootFocusOut(event));
     if (this.buttonElement) {
-      const id = Math.random().toString(36).slice(-8);
+      let id = Math.random().toString(36).slice(-8);
       this.buttonElement.setAttribute('id', this.buttonElement.getAttribute('id') || `menu-button-${id}`);
       this.listElement.setAttribute('id', this.listElement.getAttribute('id') || `menu-list-${id}`);
       this.buttonElement.setAttribute('aria-controls', this.listElement.getAttribute('id')!);
@@ -62,7 +62,7 @@ class Menu {
     }
     this.listElement.addEventListener('keydown', event => this.handleListKeyDown(event));
     this.itemElements.forEach(item => {
-      const initial = item.textContent!.trim().charAt(0).toLowerCase();
+      let initial = item.textContent!.trim().charAt(0).toLowerCase();
       if (/[a-z]/.test(initial)) {
         item.setAttribute('aria-keyshortcuts', initial);
         (this.itemsByInitial[initial] ||= []).push(item);
@@ -113,20 +113,20 @@ class Menu {
 
   private handleButtonClick(event: MouseEvent): void {
     event.preventDefault();
-    const isOpen = this.buttonElement.getAttribute('aria-expanded') === 'true';
+    let isOpen = this.buttonElement.getAttribute('aria-expanded') === 'true';
     this.toggle(!isOpen);
-    const focusableItems = [...this.itemElements].filter(this.isFocusable);
+    let focusableItems = [...this.itemElements].filter(this.isFocusable);
     if (!focusableItems.length) return;
     if (!isOpen) window.requestAnimationFrame(() => window.requestAnimationFrame(() => focusableItems[0].focus()));
   }
 
   private handleButtonKeyDown(event: KeyboardEvent): void {
-    const { key } = event;
+    let { key } = event;
     if (![' ', 'Enter', 'ArrowUp', 'ArrowDown', 'Escape'].includes(key)) return;
     event.preventDefault();
     if (!['Escape'].includes(key)) {
       this.open();
-      const nonDisabledItems = [...this.itemElements].filter(this.isFocusable);
+      let nonDisabledItems = [...this.itemElements].filter(this.isFocusable);
       if (!nonDisabledItems.length) return;
       window.requestAnimationFrame(() => window.requestAnimationFrame(() => nonDisabledItems[key !== 'ArrowUp' ? 0 : nonDisabledItems.length - 1].focus()));
       return;
@@ -135,20 +135,20 @@ class Menu {
   }
 
   private handleListKeyDown(event: KeyboardEvent): void {
-    const { key, shiftKey } = event;
+    let { key, shiftKey } = event;
     if (!this.buttonElement && shiftKey && key === 'Tab') return;
-    const isAlpha = (value: string): boolean => /^[a-z]$/i.test(value);
+    let isAlpha = (value: string): boolean => /^[a-z]$/i.test(value);
     if (!([' ', 'Enter', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'Escape'].includes(key) || (shiftKey && key === 'Tab') || (isAlpha(key) && this.itemsByInitial[key.toLowerCase()]?.filter(this.isFocusable).length))) return;
     event.preventDefault();
-    const active = document.activeElement as HTMLElement;
+    let active = document.activeElement as HTMLElement;
     if ([' ', 'Enter'].includes(key)) {
       active.click();
       return;
     }
-    const nonDisabledItems = [...this.itemElements].filter(this.isFocusable);
+    let nonDisabledItems = [...this.itemElements].filter(this.isFocusable);
     if (['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(key)) {
-      const currentIndex = nonDisabledItems.indexOf(active);
-      const length = nonDisabledItems.length;
+      let currentIndex = nonDisabledItems.indexOf(active);
+      let length = nonDisabledItems.length;
       let newIndex = currentIndex;
       switch (key) {
         case 'ArrowUp':
@@ -175,8 +175,8 @@ class Menu {
       this.close();
       return;
     }
-    const nonDisabledItemsByInitial = this.itemsByInitial[key.toLowerCase()].filter(this.isFocusable);
-    const index = nonDisabledItemsByInitial.findIndex(item => nonDisabledItems.indexOf(item) > nonDisabledItems.indexOf(active));
+    let nonDisabledItemsByInitial = this.itemsByInitial[key.toLowerCase()].filter(this.isFocusable);
+    let index = nonDisabledItemsByInitial.findIndex(item => nonDisabledItems.indexOf(item) > nonDisabledItems.indexOf(active));
     nonDisabledItemsByInitial[index !== -1 ? index : 0].focus();
   }
 
