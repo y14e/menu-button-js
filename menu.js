@@ -19,7 +19,7 @@ class Menu {
     this.listElement = this.rootElement.querySelector(`${this.settings.selector.list}${NOT_NESTED}`);
     this.itemElements = this.rootElement.querySelectorAll(`${this.settings.selector.item}${NOT_NESTED}`);
     if (!this.listElement || !this.itemElements.length) return;
-    this.itemsByInitial = {};
+    this.itemElementsByInitial = {};
     if (this.name && this.isFocusable(this.buttonElement)) Menu.hasOpen[this.name] ||= false;
     this.initialize();
   }
@@ -48,7 +48,7 @@ class Menu {
       let initial = item.textContent.trim().charAt(0).toLowerCase();
       if (/[a-z]/.test(initial)) {
         item.setAttribute('aria-keyshortcuts', initial);
-        (this.itemsByInitial[initial] ||= []).push(item);
+        (this.itemElementsByInitial[initial] ||= []).push(item);
       }
     });
     this.resetTabIndex();
@@ -121,7 +121,7 @@ class Menu {
     let { key, shiftKey } = event;
     if (!this.buttonElement && shiftKey && key === 'Tab') return;
     let isAlpha = value => /^[a-z]$/i.test(value);
-    if (!([' ', 'Enter', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'Escape'].includes(key) || (shiftKey && key === 'Tab') || (isAlpha(key) && this.itemsByInitial[key.toLowerCase()]?.filter(this.isFocusable).length))) return;
+    if (!([' ', 'Enter', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'Escape'].includes(key) || (shiftKey && key === 'Tab') || (isAlpha(key) && this.itemElementsByInitial[key.toLowerCase()]?.filter(this.isFocusable).length))) return;
     event.preventDefault();
     let active = document.activeElement;
     if ([' ', 'Enter'].includes(key)) {
@@ -158,9 +158,9 @@ class Menu {
       this.close();
       return;
     }
-    let nonDisabledItemsByInitial = this.itemsByInitial[key.toLowerCase()].filter(this.isFocusable);
-    let index = nonDisabledItemsByInitial.findIndex(item => focusableItems.indexOf(item) > focusableItems.indexOf(active));
-    nonDisabledItemsByInitial[index !== -1 ? index : 0].focus();
+    let focusableItemsByInitial = this.itemElementsByInitial[key.toLowerCase()].filter(this.isFocusable);
+    let index = focusableItemsByInitial.findIndex(item => focusableItems.indexOf(item) > focusableItems.indexOf(active));
+    focusableItemsByInitial[index !== -1 ? index : 0].focus();
   }
 
   open() {
