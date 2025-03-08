@@ -42,8 +42,8 @@ class Menu {
   }
 
   private initialize(): void {
-    document.addEventListener('mousedown', event => {
-      if (!this.rootElement.contains(event.target as HTMLElement)) this.handleOutsideMouseDown();
+    document.addEventListener('pointerdown', event => {
+      if (!this.rootElement.contains(event.target as HTMLElement)) this.handleOutsidePointerDown();
     });
     this.rootElement.addEventListener('focusout', event => this.handleRootFocusOut(event));
     if (this.buttonElement) {
@@ -87,7 +87,7 @@ class Menu {
     return element.getAttribute('aria-disabled') !== 'true' && !element.hasAttribute('disabled');
   }
 
-  private handleOutsideMouseDown(): void {
+  private handleOutsidePointerDown(): void {
     if (!this.buttonElement) return;
     this.close();
   }
