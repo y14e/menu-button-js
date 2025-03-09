@@ -31,13 +31,12 @@ class Menu {
     this.settings = {
       selector: { ...this.defaults.selector, ...options?.selector },
     };
-    let NOT_NESTED = `:not(:scope ${this.settings.selector.item} *)`;
-    this.buttonElement = this.rootElement.querySelector(`${this.settings.selector.button}${NOT_NESTED}`) as HTMLElement;
-    this.listElement = this.rootElement.querySelector(`${this.settings.selector.list}${NOT_NESTED}`) as HTMLElement;
-    this.itemElements = this.rootElement.querySelectorAll(`${this.settings.selector.item}${NOT_NESTED}`);
+    this.buttonElement = this.rootElement.querySelector(this.settings.selector.button) as HTMLElement;
+    this.listElement = this.rootElement.querySelector(this.settings.selector.list) as HTMLElement;
+    this.itemElements = this.rootElement.querySelectorAll(this.settings.selector.item);
     if (!this.listElement || !this.itemElements.length) return;
     this.itemElementsByInitial = {};
-    if (this.name) Menu.hasOpen[this.name] ||= false;
+    if (this.name && this.isFocusable(this.buttonElement)) Menu.hasOpen[this.name] ||= false;
     this.initialize();
   }
 
