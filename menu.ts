@@ -51,7 +51,7 @@ class Menu {
       this.listElement.setAttribute('id', this.listElement.getAttribute('id') || `menu-list-${id}`);
       this.buttonElement.setAttribute('aria-controls', this.listElement.getAttribute('id')!);
       this.buttonElement.setAttribute('aria-expanded', 'false');
-      this.buttonElement.setAttribute('aria-haspopup', 'true');
+      this.buttonElement.setAttribute('aria-haspopup', 'menu');
       this.buttonElement.setAttribute('tabindex', this.isFocusable(this.buttonElement) ? '0' : '-1');
       if (!this.isFocusable(this.buttonElement)) this.buttonElement.style.setProperty('pointer-events', 'none');
       this.buttonElement.addEventListener('pointerover', event => this.handleButtonPointerOver(event));
