@@ -55,10 +55,8 @@ class Menu {
     this.rootElement.setAttribute('data-menu-initialized', '');
   }
 
-  toggle(isOpen) {
-    if (!this.buttonElement || (this.buttonElement.getAttribute('aria-expanded') === 'true') === isOpen) return;
-    if (this.name) Menu.hasOpen[this.name] = isOpen;
-    this.buttonElement.setAttribute('aria-expanded', String(isOpen));
+  isFocusable(element) {
+    return element.getAttribute('aria-disabled') !== 'true' && !element.hasAttribute('disabled');
   }
 
   resetTabIndex() {
@@ -66,8 +64,9 @@ class Menu {
     this.itemElements.forEach(item => item.setAttribute('tabindex', this.isFocusable(item) && [...this.itemElements].filter(this.isFocusable).findIndex(item => item.getAttribute('tabindex') === '0') === -1 ? '0' : '-1'));
   }
 
-  isFocusable(element) {
-    return element.getAttribute('aria-disabled') !== 'true' && !element.hasAttribute('disabled');
+  toggle(isOpen) {
+    if (this.name) Menu.hasOpen[this.name] = isOpen;
+    this.buttonElement.setAttribute('aria-expanded', String(isOpen));
   }
 
   handleOutsidePointerDown() {
@@ -87,11 +86,9 @@ class Menu {
   }
 
   handleButtonPointerOver(event) {
-    if (event.pointerType !== 'mouse') return;
-    if (this.name && Menu.hasOpen[this.name]) {
-      this.buttonElement.focus();
-      this.open();
-    }
+    if (event.pointerType !== 'mouse' || !this.name || !Menu.hasOpen[this.name]) return;
+    this.buttonElement.focus();
+    this.open();
   }
 
   handleButtonClick(event) {
@@ -164,10 +161,12 @@ class Menu {
   }
 
   open() {
+    if (!this.buttonElement || this.buttonElement.getAttribute('aria-expanded') === 'true') return;
     this.toggle(true);
   }
 
   close() {
+    if (!this.buttonElement || this.buttonElement.getAttribute('aria-expanded') !== 'true') return;
     this.toggle(false);
     if (this.buttonElement && this.rootElement.contains(document.activeElement)) this.buttonElement.focus();
   }

@@ -72,10 +72,8 @@ class Menu {
     this.rootElement.setAttribute('data-menu-initialized', '');
   }
 
-  private toggle(isOpen: boolean): void {
-    if (!this.buttonElement || (this.buttonElement.getAttribute('aria-expanded') === 'true') === isOpen) return;
-    if (this.name) Menu.hasOpen[this.name] = isOpen;
-    this.buttonElement.setAttribute('aria-expanded', String(isOpen));
+  private isFocusable(element: HTMLElement): boolean {
+    return element.getAttribute('aria-disabled') !== 'true' && !element.hasAttribute('disabled');
   }
 
   private resetTabIndex(): void {
@@ -83,10 +81,10 @@ class Menu {
     this.itemElements.forEach(item => item.setAttribute('tabindex', this.isFocusable(item) && [...this.itemElements].filter(this.isFocusable).findIndex(item => item.getAttribute('tabindex') === '0') === -1 ? '0' : '-1'));
   }
 
-  private isFocusable(element: HTMLElement): boolean {
-    return element.getAttribute('aria-disabled') !== 'true' && !element.hasAttribute('disabled');
+  private toggle(isOpen: boolean): void {
+    if (this.name) Menu.hasOpen[this.name] = isOpen;
+    this.buttonElement.setAttribute('aria-expanded', String(isOpen));
   }
-
   private handleOutsidePointerDown(): void {
     if (!this.buttonElement) return;
     this.close();
@@ -104,11 +102,9 @@ class Menu {
   }
 
   private handleButtonPointerOver(event: PointerEvent): void {
-    if (event.pointerType !== 'mouse') return;
-    if (this.name && Menu.hasOpen[this.name]) {
-      this.buttonElement.focus();
-      this.open();
-    }
+    if (event.pointerType !== 'mouse' || !this.name || !Menu.hasOpen[this.name]) return;
+    this.buttonElement.focus();
+    this.open();
   }
 
   private handleButtonClick(event: MouseEvent): void {
@@ -181,10 +177,12 @@ class Menu {
   }
 
   open(): void {
+    if (!this.buttonElement || this.buttonElement.getAttribute('aria-expanded') === 'true') return;
     this.toggle(true);
   }
 
   close(): void {
+    if (!this.buttonElement || this.buttonElement.getAttribute('aria-expanded') !== 'true') return;
     this.toggle(false);
     if (this.buttonElement && this.rootElement.contains(document.activeElement)) this.buttonElement.focus();
   }
